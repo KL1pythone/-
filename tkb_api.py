@@ -10,6 +10,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
+from gevent.pywsgi import WSGIServer
+from gevent import monkey
+from flask_compress import Compress
+
+monkey.patch_all()
+
 import uuid
 
 from database.api.companies import get_companies, get_company, create_company, update_company, delete_company
@@ -324,6 +330,11 @@ def delfilter():
 def timeout(e):
     return jsonify("Запрос не удалось обработать в срок, timeout")
 
-if __name__ == "__main__":
-    app.run(debug=True, host='127.0.0.1')
+# if __name__ == "__main__":
+#     app.run(debug=True, host='0.0.0.0')
 
+compress = Compress()
+compress.init_app(app)
+
+http_server = WSGIServer(('0.0.0.0', 5000), app)
+http_server.serve_forever()
