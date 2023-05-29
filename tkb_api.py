@@ -10,20 +10,25 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
+from gevent.pywsgi import WSGIServer
+from gevent import monkey
+from flask_compress import Compress
+
+monkey.patch_all()
+
 import uuid
 
 from database.api.companies import get_companies, get_company, create_company, update_company, delete_company
-from database.api.filters import get_filters, get_filter, create_filter, update_filter, delete_filter, get_filters_company
+from database.api.filters import get_filters, get_filter, create_filter, update_filter, delete_filter
 from database.api.ratings import get_ratings, get_rating, create_rating, update_rating, delete_rating
 from database.api.responses import get_responses, get_response, create_response, update_response, delete_response
 from database.api.requests import get_requests, get_request, create_request, update_request, delete_request
-#from database.api.users import get_users, get_user, create_user, update_user, delete_user
 
 from database.routes.companies import companies_b
 from database.routes.filters import filters_b
 from database.routes.ratings import ratings_b
 from database.routes.responses import responses_b
-from database.routes.users import users_b
+from database.routes.requests import requests_b
 
 app = flask.Flask(__name__)
 
@@ -80,11 +85,11 @@ def gettoken():
         # пока возвращаем статику для тестов
         # входящие параметры inn(ИНН) и name(Название) организации
 
-        token = str(uuid.uuid4())
+        token = uuid.uuid4()
 
         company = {
             '_id': str(uuid.uuid4()),
-            'token': token,
+            'token': str(token),
             'tax_number': inn,
             'company_name': name
         }
@@ -164,6 +169,16 @@ def question():
             soup = bs(driver.page_source, "lxml")
 
             bloks = soup.find_all('li', class_='serp-item')
+
+            response = {
+                '_id': str(uuid.uuid4()),
+                'chat_id': iduser,
+                'response_text': q,
+            }
+
+            response_id = create_response(mongo, response)
+
+            # тут должен быть механизм поиска ответов
 
             result = []
 
@@ -323,7 +338,20 @@ def delfilter():
 @app.errorhandler(408)
 def timeout(e):
     return jsonify("Запрос не удалось обработать в срок, timeout")
+<<<<<<< HEAD
 
+<<<<<<< HEAD
+# if __name__ == "__main__":
+#     app.run(debug=True, host='0.0.0.0')
+
+compress = Compress()
+compress.init_app(app)
+
+http_server = WSGIServer(('0.0.0.0', 5000), app)
+http_server.serve_forever()
+=======
+=======
+>>>>>>> 5d87cb4ad42d1cc7d21f25f1f50df90efc837553
 if __name__ == "__main__":
     app.run(debug=True, host='127.0.0.1')
-
+>>>>>>> 2680ddff07f8e70e324db8113309671421f30e09
